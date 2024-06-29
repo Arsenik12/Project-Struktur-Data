@@ -3,82 +3,81 @@ import sys
 import random
 from pygame.math import Vector2
 
+class Node:
+    def __init__(self, position):
+        self.position = position
+        self.next = None
 
 class SNAKE:
     def __init__(self):
-        self.body = [Vector2(5, 10), Vector2(4, 10), Vector2(3, 10)]
-        self.direction = Vector2(0, 0)
+        head = Node(Vector2(5, 10))
+        body = Node(Vector2(4, 10))
+        tail = Node(Vector2(3, 10))
+        
+        head.next = body
+        body.next = tail
+        
+        self.head = head
+        self.body = body
+        self.tail = tail
+        self.direction = Vector2(1, 0)
         self.new_block = False
 
         self.head_up = pygame.image.load(
-            'GameSnake/Assets/ular/head_up.png').convert_alpha()
+            'Assets/ular/head_up.png').convert_alpha()
         self.head_down = pygame.image.load(
-            'GameSnake/Assets/ular/head_down.png').convert_alpha()
+            'Assets/ular/head_down.png').convert_alpha()
         self.head_right = pygame.image.load(
-            'GameSnake/Assets/ular/head_right.png').convert_alpha()
+            'Assets/ular/head_right.png').convert_alpha()
         self.head_left = pygame.image.load(
-            'GameSnake/Assets/ular/head_left.png').convert_alpha()
+            'Assets/ular/head_left.png').convert_alpha()
 
         self.tail_up = pygame.image.load(
-            'GameSnake/Assets/ular/tail_up.png').convert_alpha()
+            'Assets/ular/tail_up.png').convert_alpha()
         self.tail_down = pygame.image.load(
-            'GameSnake/Assets/ular/tail_down.png').convert_alpha()
+            'Assets/ular/tail_down.png').convert_alpha()
         self.tail_right = pygame.image.load(
-            'GameSnake/Assets/ular/tail_right.png').convert_alpha()
+            'Assets/ular/tail_right.png').convert_alpha()
         self.tail_left = pygame.image.load(
-            'GameSnake/Assets/ular/tail_left.png').convert_alpha()
+            'Assets/ular/tail_left.png').convert_alpha()
 
         self.body_vertical = pygame.image.load(
-            'GameSnake/Assets/ular/body_vertical.png').convert_alpha()
+            'Assets/ular/body_vertical.png').convert_alpha()
         self.body_horizontal = pygame.image.load(
-            'GameSnake/Assets/ular/body_horizontal.png').convert_alpha()
+            'Assets/ular/body_horizontal.png').convert_alpha()
 
         self.body_tr = pygame.image.load(
-            'GameSnake/Assets/ular/body_tr.png').convert_alpha()
+            'Assets/ular/body_tr.png').convert_alpha()
         self.body_tl = pygame.image.load(
-            'GameSnake/Assets/ular/body_tl.png').convert_alpha()
+            'Assets/ular/body_tl.png').convert_alpha()
         self.body_br = pygame.image.load(
-            'GameSnake/Assets/ular/body_br.png').convert_alpha()
+            'Assets/ular/body_br.png').convert_alpha()
         self.body_bl = pygame.image.load(
-            'GameSnake/Assets/ular/body_bl.png').convert_alpha()
-        self.crunch_sound = pygame.mixer.Sound('GameSnake/Sound/crunch.wav')
+            'Assets/ular/body_bl.png').convert_alpha()
+        self.crunch_sound = pygame.mixer.Sound('Sound/crunch.wav')
         self.gameOver_sound = pygame.mixer.Sound(
-            'GameSnake/Sound/mixkit-little-piano-game-over-1944.wav')
+            'Sound/mixkit-little-piano-game-over-1944.wav')
         self.walk_sound = pygame.mixer.Sound(
-            'GameSnake/Sound/SMEFMQE-snake-movement.wav')
+            'Sound/SMEFMQE-snake-movement.wav')
 
     def draw_snake(self):
-        self.update_head_graphics()
-        self.update_tail_graphics()
-
-        for index, block in enumerate(self.body):
-            x_pos = int(block.x * cell_size)
-            y_pos = int(block.y * cell_size)
-            block_rect = pygame.Rect(x_pos, y_pos, cell_size, cell_size)
-
-            if index == 0:
-                screen.blit(self.head, block_rect)
-            elif index == len(self.body) - 1:
-                screen.blit(self.tail, block_rect)
+        current_node = self.head
+        while current_node is not None:
+            x_pos = int(current_node.x * cell_size)
+            y_pos = int(current_node.y * cell_size)
+            node_rect = pygame.Rect(x_pos, y_pos, cell_size, cell_size)
+            
+            if current_node == self.head:
+                screen.blit(self.head, node_rect)
+            elif current_node == self.tail:
+                screen.blit(self.tail, node_rect)
             else:
-                previous_block = self.body[index + 1] - block
-                next_block = self.body[index - 1] - block
-                if previous_block.x == next_block.x:
-                    screen.blit(self.body_vertical, block_rect)
-                elif previous_block.y == next_block.y:
-                    screen.blit(self.body_horizontal, block_rect)
-                else:
-                    if previous_block.x == -1 and next_block.y == -1 or previous_block.y == -1 and next_block.x == -1:
-                        screen.blit(self.body_tl, block_rect)
-                    elif previous_block.x == -1 and next_block.y == 1 or previous_block.y == 1 and next_block.x == -1:
-                        screen.blit(self.body_bl, block_rect)
-                    elif previous_block.x == 1 and next_block.y == -1 or previous_block.y == -1 and next_block.x == 1:
-                        screen.blit(self.body_tr, block_rect)
-                    elif previous_block.x == 1 and next_block.y == 1 or previous_block.y == 1 and next_block.x == 1:
-                        screen.blit(self.body_br, block_rect)
-
+                screen.blit(self.body, node_rect)
+            
+            current_node = current_node.next
+    
     def update_head_graphics(self):
-        head_relation = self.body[1] - self.body[0]
+        head_relation = self.body.position - self.head.position
         if head_relation == Vector2(1, 0):
             self.head = self.head_left
         elif head_relation == Vector2(-1, 0):
@@ -89,7 +88,7 @@ class SNAKE:
             self.head = self.head_down
 
     def update_tail_graphics(self):
-        tail_relation = self.body[-2] - self.body[-1]
+        tail_relation = self.tail.position - self.body.position
         if tail_relation == Vector2(1, 0):
             self.tail = self.tail_left
         elif tail_relation == Vector2(-1, 0):
@@ -100,24 +99,34 @@ class SNAKE:
             self.tail = self.tail_down
 
     def move_snake(self):
-        if self.new_block:
-            body_copy = self.body[:]
-            body_copy.insert(0, body_copy[0] + self.direction)
-            self.body = body_copy[:]
-            self.new_block = False
+        new_head_pos = self.head.position + self.direction
+        new_head = Node(new_head_pos)
+        
+        new_head.next = self.head
+        self.head = new_head
+        
+        if not self.new_block:
+            current = self.head
+            while current.next and current.next.next:
+                current = current.next
+            current.next = None
+            self.tail = current
         else:
-            body_copy = self.body[:-1]
-            body_copy.insert(0, body_copy[0] + self.direction)
-            self.body = body_copy[:]
-        self.play_walk_sound()
+            self.new_block = False
 
     def add_block(self):
         self.new_block = True
 
     def remove_block(self):
-        if len(self.body) > 1:
-            self.body.pop()
-        if len(self.body) <= 1:
+        if self.head is None or self.head.next is None:
+            main_game.game_over()
+        
+        current = self.head 
+        while current.next.next:
+            current = current.next
+        current.next = None
+        
+        if self.head.next is None:
             main_game.game_over()
 
     def play_crunch_sound(self):
@@ -130,8 +139,18 @@ class SNAKE:
         self.walk_sound.play()
 
     def reset(self):
-        self.body = [Vector2(5, 10), Vector2(4, 10), Vector2(3, 10)]
+        
+        head = Node(Vector2(5, 10))
+        middle = Node(Vector2(4, 10))
+        tail = Node(Vector2(3, 10))
+    
+        head.next = middle
+        middle.next = tail
+    
+        self.head = head
+        self.tail = tail
         self.direction = Vector2(0, 0)
+        self.new_block = False  # Ensure this flag is reset as well
 
 
 class FRUIT:
@@ -188,31 +207,40 @@ class MAIN:
         self.draw_score()
 
     def check_collision(self):
-        if self.active_object == 'fruit' and self.fruit.pos == self.snake.body[0]:
+
+        if self.active_object == 'fruit' and self.fruit.pos == self.snake.head.value:
             self.fruit.randomize()
             self.snake.add_block()
             self.snake.play_crunch_sound()
             self.switch_object()
+    
 
-        if self.active_object == 'trash' and self.trash.pos == self.snake.body[0]:
+        if self.active_object == 'trash' and self.trash.pos == self.snake.head.value:
             self.snake.remove_block()
             self.switch_object()
-
-        for block in self.snake.body[1:]:
-            if block == self.fruit.pos:
+    
+  
+        current = self.snake.head.next
+        while current:
+            if current.value == self.fruit.pos:
                 self.fruit.randomize()
-
-            if block == self.trash.pos:
+            if current.value == self.trash.pos:
                 self.trash.randomize()
+            current = current.next
 
     def check_fail(self):
-        if not 0 <= self.snake.body[0].x < cell_number or not 0 <= self.snake.body[0].y < cell_number:
+        # Boundary check
+        if not 0 <= self.snake.head.value.x < cell_number or not 0 <= self.snake.head.value.y < cell_number:
             self.game_over()
             self.snake.play_gameOver_sound()
-
-        for block in self.snake.body[1:]:
-            if block == self.snake.body[0]:
+    
+        # Body collision check
+        current = self.snake.head.next
+        while current:
+            if current.value == self.snake.head.value:
                 self.game_over()
+                break
+            current = current.next
 
     def game_over(self):
         self.snake.reset()
@@ -234,7 +262,13 @@ class MAIN:
                         pygame.draw.rect(screen, grass_color, grass_rect)
 
     def draw_score(self):
-        score_text = str(len(self.snake.body) - 3)
+        count = 0
+        current_node = self.snake.body
+        while current_node is not None:
+            count += 1
+            current_node = current_node.next
+
+        score_text = str(count - 3)  # Assuming the initial length is 3
         score_surface = game_font.render(score_text, True, (56, 74, 12))
         score_x = int(cell_size * cell_number - 60)
         score_y = int(cell_size * cell_number - 40)
@@ -268,9 +302,9 @@ cell_size = 28
 cell_number = 24
 screen = pygame.display.set_mode((cell_number * cell_size, cell_number * cell_size))
 clock = pygame.time.Clock()
-apple = pygame.image.load('GameSnake/Assets/buah/apple.png').convert_alpha()
-trash = pygame.image.load('GameSnake/Assets/sampah/appleSisa.png').convert_alpha()
-game_font = pygame.font.Font('GameSnake/Font/PoetsenOne-Regular.ttf', 25)
+apple = pygame.image.load('Assets/buah/apple.png').convert_alpha()
+trash = pygame.image.load('Assets/sampah/appleSisa.png').convert_alpha()
+game_font = pygame.font.Font('Font/PoetsenOne-Regular.ttf', 25)
 
 SCREEN_UPDATE = pygame.USEREVENT
 pygame.time.set_timer(SCREEN_UPDATE, 150)
