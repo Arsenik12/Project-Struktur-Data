@@ -2,26 +2,26 @@ import pygame
 import sys
 import random
 
-# Inisialiasi kelas Node
+# Inisialisasi kelas Node
 class Node:
     def __init__(self, position):
-        self.position = position #posisi dari tiap node (x,y) tuple
+        self.position = position
         self.next = None
 
-# inisialisasi kelas snake berisi method-method untuk manipulasi snake
+# Inisialisasi kelas snake berisi method-method untuk manipulasi snake
 class Snake:
     def __init__(self, position):
         self.head = Node(position)
         self.tail = self.head
         self.length = 1
     
-    def addHead(self, position): #ini fungsi sama kayak addFront
+    def addHead(self, position):
         new_node = Node(position)
         new_node.next = self.head
         self.head = new_node
         self.length += 1
     
-    def removeHead(self): #ini fungsi sama kayak removeFront
+    def removeHead(self):
         if self.head == self.tail:
             self.head = None
             self.tail = None
@@ -29,7 +29,7 @@ class Snake:
             self.head = self.head.next
         self.length -= 1
     
-    def removeTail(self): #ini fungsi sama kayak removeBack
+    def removeTail(self):
         if self.head == self.tail:
             self.head = None
             self.tail = None
@@ -41,17 +41,17 @@ class Snake:
             self.tail = current
         self.length -= 1
 
-# inisialiasi pygame
+# Inisialisasi pygame
 pygame.init()
 
-# ngatur ukuran window
+# Atur ukuran window
 SCREEN_WIDTH = 900
 SCREEN_HEIGHT = 500
-GRID_SIZE = 30 #ukuran per grid dalam layar
+GRID_SIZE = 30
 GRID_WIDTH = SCREEN_WIDTH // GRID_SIZE
 GRID_HEIGHT = SCREEN_HEIGHT // GRID_SIZE
 
-#masukin aset-aset gambar
+# Masukkan aset gambar
 judul = pygame.image.load('Assets/judul.png')
 apple_image = pygame.image.load('Assets/buah/apple.png')
 apple_image = pygame.transform.scale(apple_image, (GRID_SIZE, GRID_SIZE))
@@ -59,99 +59,112 @@ kulit_pisang = pygame.image.load('Assets/sampah/kulitPisang.png')
 kulit_pisang = pygame.transform.scale(kulit_pisang, (GRID_SIZE, GRID_SIZE))
 dirty = pygame.image.load('Assets/sampah/dirty.png')
 dirty = pygame.transform.scale(dirty, (GRID_SIZE, GRID_SIZE))
+sampah = pygame.image.load('Assets/sampah/trash.png')
+sampah = pygame.transform.scale(sampah, (GRID_SIZE, GRID_SIZE))
+applesisa = pygame.image.load('Assets/sampah/appleSisa.png')
+applesisa = pygame.transform.scale(applesisa, (GRID_SIZE, GRID_SIZE))
+batu = pygame.image.load('Assets/obstacle/batu.png')
+batu = pygame.transform.scale(batu, (GRID_SIZE, GRID_SIZE))
 
-#masukin suara
+# Masukkan suara
 crunch_sound = pygame.mixer.Sound('Sound/crunch.wav')
 die_sound = pygame.mixer.Sound('Sound/mixkit-little-piano-game-over-1944.wav')
 
-#Kelas utama untuk game
+# Kelas utama untuk game
 class SnakeGame:
     def __init__(self):
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         pygame.display.set_caption("Proyek SD - Linkedlist Snake Game")
-        self.clock = pygame.time.Clock() #buat ngatur fps pygame
-        self.trash_positions = [] # inisialisasi posisi trash sebagai daftar kosong
-        self.trash_timer = 0 # reset timer trash
+        self.clock = pygame.time.Clock()
+        self.trash_positions = []
+        self.trash_timer = 0
         self.food_timer = 0
+        self.trash_images = [kulit_pisang, dirty, sampah, applesisa]
+        self.trash_items = []
+        self.obstacle_positions = []
         self.reset()
         
-    # kalau snake mati maka akan reset semuanya
     def reset(self):
         self.snake = Snake((GRID_WIDTH // 2, GRID_HEIGHT // 2))
         self.trash_positions = []
+        self.trash_items = []
+        self.obstacle_positions = [self.getRandomObstaclePos() for _ in range(3)]
         self.trash_timer = 0
         self.food_timer = pygame.time.get_ticks()
-        self.snake_direction = (1, 0) # 1,0 kanan -1,0 kiri 0,1 bawah 0,-1 atas
+        self.snake_direction = (1, 0)
         self.food_position = self.getRandomFoodPos()
         self.score = 0
     
     def getRandomFoodPos(self):
         while True:
-            position = (random.randint(0, GRID_WIDTH - 1), random.randint(0, GRID_HEIGHT - 1)) #x,y
-            if not self.isEatenBySnake(position): #cek apakah posisi random food nabrak ular atau ga
+            position = (random.randint(0, GRID_WIDTH - 1), random.randint(0, GRID_HEIGHT - 1))
+            if not self.isEatenBySnake(position) and position not in self.obstacle_positions:
                 return position
-            self.food_timer = pygame.time.get_ticks() # Reset food timer
 
     def isEatenBySnake(self, position):
         current = self.snake.head
-        while current: #selama current bukan None maka akan cek posisinya apakah sama dengan posisi yang diinput
+        while current:
             if current.position == position:
                 return True
             current = current.next
         return False
     
     def isTrashEaten(self, position):
-        return position in self.trash_positions #cek apakah position ada di list trash_positions
+        return position in self.trash_positions
 
-    # cek apakah posisi random trash bertabrakan dengan ular gak
     def getRandomTrashPos(self):
+        while True:
+            position = (random.randint(0, GRID_WIDTH - 1), random.randint(0, GRID_HEIGHT - 1))
+            if (not self.isEatenBySnake(position) and position != self.food_position 
+                    and position not in self.obstacle_positions):
+                return position
+
+    def getRandomObstaclePos(self):
         while True:
             position = (random.randint(0, GRID_WIDTH - 1), random.randint(0, GRID_HEIGHT - 1))
             if not self.isEatenBySnake(position) and position != self.food_position:
                 return position
 
     def update(self):
-        # tuple of new head position, modulo buat ngecek apakah snake nabrak tembok atau ga
-        # kalo nabrak tembok, bakal balik ke sisi seberang 
-        # contoh: new_head_position (x) = 30 + 1 % 30 = 1, maka x sekarang di 1 (ujung kiri)
         new_head_position = (
-            (self.snake.head.position[0] + self.snake_direction[0]) % GRID_WIDTH, #posisi baru x
-            (self.snake.head.position[1] + self.snake_direction[1]) % GRID_HEIGHT #posisi baru y
+            (self.snake.head.position[0] + self.snake_direction[0]) % GRID_WIDTH,
+            (self.snake.head.position[1] + self.snake_direction[1]) % GRID_HEIGHT
         )
         
-        if self.isEatenBySnake(new_head_position): # kondisi jika snake nabrak ke badan sendiri
+        if self.isEatenBySnake(new_head_position) or new_head_position in self.obstacle_positions:
             self.play_die_sound()
             self.reset()
         else:
-            self.snake.addHead(new_head_position) #manipulasi movement snake
+            self.snake.addHead(new_head_position)
             
-            if new_head_position == self.food_position: #jika snake makan food
-                self.food_position = self.getRandomFoodPos() #spawn makanan baru
+            if new_head_position == self.food_position:
+                self.food_position = self.getRandomFoodPos()
                 self.play_crunch_sound()
                 self.score += 1
-                self.food_timer = pygame.time.get_ticks() # Reset food timer
+                self.food_timer = pygame.time.get_ticks()
                 
-            elif self.isTrashEaten(new_head_position):  #jika snake makan sampah
-                self.snake.removeTail() #remove tail pertama untuk manipulasi gerakan
-                self.snake.removeTail() #remove tail pertama untuk mengurangi segmen
-                self.trash_positions.remove(new_head_position)
+            elif self.isTrashEaten(new_head_position):
+                self.snake.removeTail()
+                self.snake.removeTail()
+                trash_index = self.trash_positions.index(new_head_position)
+                del self.trash_positions[trash_index]
+                del self.trash_items[trash_index]
                 self.play_crunch_sound()
                 self.score -= 1
-                if self.score == -1: #jika score -1 maka game over
+                if self.score == -1:
                     self.play_die_sound()
                     self.reset()
-                self.trash_timer = pygame.time.get_ticks() # Reset trash timer
+                self.trash_timer = pygame.time.get_ticks()
             else:
-                self.snake.removeTail() # Manipulasi movement snake
+                self.snake.removeTail()
 
-        if pygame.time.get_ticks() - self.food_timer > 5000: #5 detik ga diambil, reset food
+        if pygame.time.get_ticks() - self.food_timer > 5000:
             self.food_position = self.getRandomFoodPos()
             self.food_timer = pygame.time.get_ticks()
 
     def draw(self):
         self.screen.fill((108, 108, 108))
         
-        # draw snake
         current = self.snake.head
         while current:
             pygame.draw.rect(
@@ -161,16 +174,16 @@ class SnakeGame:
             )
             current = current.next
         
-        # draw food image
         self.screen.blit(apple_image, (self.food_position[0] * GRID_SIZE, self.food_position[1] * GRID_SIZE))
         
+        for index, position in enumerate(self.trash_positions):
+            self.screen.blit(self.trash_items[index], (position[0] * GRID_SIZE, position[1] * GRID_SIZE))
         
-        #draw trash 
-        for position in self.trash_positions:
-            self.screen.blit(dirty, (position[0] * GRID_SIZE, position[1] * GRID_SIZE))
+        for position in self.obstacle_positions:
+            self.screen.blit(batu, (position[0] * GRID_SIZE, position[1] * GRID_SIZE))
         
         self.draw_score()
-        pygame.display.flip() #update screen
+        pygame.display.flip()
     
     def play_crunch_sound(self):
         pygame.mixer.Sound.play(crunch_sound)
@@ -194,16 +207,15 @@ class SnakeGame:
             font = pygame.font.Font(None, 36)
             scaled_judul = pygame.transform.scale(judul, (290, 200))
             self.screen.blit(scaled_judul, (SCREEN_WIDTH//2-150, 20))
-            score_text = font.render(f"Press any key to start", True, font_color)
-            name1 = font.render(f"Crisnanda", True, font_color)
-            name2 = font.render(f"Victor", True, font_color)
-            name3 = font.render(f"Billy", True, font_color)
+            score_text = font.render("Press any key to start", True, font_color)
+            name1 = font.render("Crisnanda", True, font_color)
+            name2 = font.render("Victor", True, font_color)
+            name3 = font.render("Billy", True, font_color)
 
             text_rect = score_text.get_rect()
             name1_rect = name1.get_rect()
             name2_rect = name2.get_rect()
             name3_rect = name3.get_rect()
-            # Posisi teks di tengah
             name1_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT//2-40)
             name2_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT//2-15)
             name3_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT//2+10)
@@ -227,13 +239,13 @@ class SnakeGame:
                 pygame.quit()
                 sys.exit()
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP and self.snake_direction != (0, 1): #kalo arahnya ke bawah, ga bisa ke atas
+                if event.key == pygame.K_UP and self.snake_direction != (0, 1):
                     self.snake_direction = (0, -1)
-                elif event.key == pygame.K_DOWN and self.snake_direction != (0, -1): #kalo arahnya ke atas, ga bisa ke bawah
+                elif event.key == pygame.K_DOWN and self.snake_direction != (0, -1):
                     self.snake_direction = (0, 1)
-                elif event.key == pygame.K_LEFT and self.snake_direction != (1, 0): #kalo arahnya ke kanan, ga bisa ke kiri
+                elif event.key == pygame.K_LEFT and self.snake_direction != (1, 0):
                     self.snake_direction = (-1, 0)
-                elif event.key == pygame.K_RIGHT and self.snake_direction != (-1, 0): #kalo arahnya ke kiri, ga bisa ke kanan
+                elif event.key == pygame.K_RIGHT and self.snake_direction != (-1, 0):
                     self.snake_direction = (1, 0)
 
     def run(self):
@@ -242,17 +254,23 @@ class SnakeGame:
             self.handle_keys()
             self.update()
             self.draw()
-            self.clock.tick(10) #artinya 10 fps
+            self.clock.tick(10)
             if len(self.trash_positions) == 0:
-                self.trash_positions.append(self.getRandomTrashPos()) # Spawn trash
-                self.trash_timer = pygame.time.get_ticks() # Start timer
+                self.spawn_trash()
             elif len(self.trash_positions) > 0:
-                if self.score > 10 and len(self.trash_positions) < 5: # jika skor lebih dari 10 dan jumlah trash kurang dari 5, trash baru akan spawn
-                    self.trash_positions.append(self.getRandomTrashPos()) 
+                if self.score > 10 and len(self.trash_positions) < 5:
+                    self.spawn_trash()
                     
-                # jika trash tidak diambil dalam 3 detik, daftar trash direset menjadi kosong
-                if pygame.time.get_ticks() - self.trash_timer > 3000: # 3 detik ga diambil, reset trash time
-                    self.trash_positions = []  # inisialisasi posisi trash kosong
+                if pygame.time.get_ticks() - self.trash_timer > 3000:
+                    self.trash_positions = []
+                    self.trash_items = []
+
+    def spawn_trash(self):
+        new_trash_position = self.getRandomTrashPos()
+        new_trash_image = random.choice(self.trash_images)
+        self.trash_positions.append(new_trash_position)
+        self.trash_items.append(new_trash_image)
+        self.trash_timer = pygame.time.get_ticks()
 
 if __name__ == "__main__":
     SnakeGame().run()
