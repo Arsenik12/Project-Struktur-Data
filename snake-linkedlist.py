@@ -15,13 +15,13 @@ class Snake:
         self.tail = self.head
         self.length = 1
     
-    def add_head(self, position): #ini fungsi sama kayak addFront
+    def addHead(self, position): #ini fungsi sama kayak addFront
         new_node = Node(position)
         new_node.next = self.head
         self.head = new_node
         self.length += 1
     
-    def remove_head(self): #ini fungsi sama kayak removeFront
+    def removeHead(self): #ini fungsi sama kayak removeFront
         if self.head == self.tail:
             self.head = None
             self.tail = None
@@ -29,7 +29,7 @@ class Snake:
             self.head = self.head.next
         self.length -= 1
     
-    def remove_tail(self): #ini fungsi sama kayak removeBack
+    def removeTail(self): #ini fungsi sama kayak removeBack
         if self.head == self.tail:
             self.head = None
             self.tail = None
@@ -82,17 +82,17 @@ class SnakeGame:
         self.trash_timer = 0
         self.food_timer = pygame.time.get_ticks()
         self.snake_direction = (1, 0) # 1,0 kanan -1,0 kiri 0,1 bawah 0,-1 atas
-        self.food_position = self.get_random_food_position()
+        self.food_position = self.getRandomFoodPos()
         self.score = 0
     
-    def get_random_food_position(self):
+    def getRandomFoodPos(self):
         while True:
             position = (random.randint(0, GRID_WIDTH - 1), random.randint(0, GRID_HEIGHT - 1)) #x,y
-            if not self.is_collision_with_snake(position): #cek apakah posisi random food nabrak ular atau ga
+            if not self.isEatenBySnake(position): #cek apakah posisi random food nabrak ular atau ga
                 return position
             self.food_timer = pygame.time.get_ticks() # Reset food timer
 
-    def is_collision_with_snake(self, position):
+    def isEatenBySnake(self, position):
         current = self.snake.head
         while current: #selama current bukan None maka akan cek posisinya apakah sama dengan posisi yang diinput
             if current.position == position:
@@ -100,14 +100,14 @@ class SnakeGame:
             current = current.next
         return False
     
-    def is_collision_with_trash(self, position):
-        return position in self.trash_positions
+    def isTrashEaten(self, position):
+        return position in self.trash_positions #cek apakah position ada di list trash_positions
 
     # cek apakah posisi random trash bertabrakan dengan ular gak
-    def get_random_trash_position(self):
+    def getRandomTrashPos(self):
         while True:
             position = (random.randint(0, GRID_WIDTH - 1), random.randint(0, GRID_HEIGHT - 1))
-            if not self.is_collision_with_snake(position):
+            if not self.isEatenBySnake(position) and position != self.food_position:
                 return position
 
     def update(self):
@@ -119,21 +119,21 @@ class SnakeGame:
             (self.snake.head.position[1] + self.snake_direction[1]) % GRID_HEIGHT #posisi baru y
         )
         
-        if self.is_collision_with_snake(new_head_position): # kondisi jika snake nabrak ke badan sendiri
+        if self.isEatenBySnake(new_head_position): # kondisi jika snake nabrak ke badan sendiri
             self.play_die_sound()
             self.reset()
         else:
-            self.snake.add_head(new_head_position) #manipulasi movement snake
+            self.snake.addHead(new_head_position) #manipulasi movement snake
             
             if new_head_position == self.food_position: #jika snake makan food
-                self.food_position = self.get_random_food_position() #spawn makanan baru
+                self.food_position = self.getRandomFoodPos() #spawn makanan baru
                 self.play_crunch_sound()
                 self.score += 1
                 self.food_timer = pygame.time.get_ticks() # Reset food timer
                 
-            elif self.is_collision_with_trash(new_head_position):  #jika snake makan sampah
-                self.snake.remove_tail() #remove tail pertama untuk manipulasi gerakan
-                self.snake.remove_tail() #remove tail pertama untuk mengurangi segmen
+            elif self.isTrashEaten(new_head_position):  #jika snake makan sampah
+                self.snake.removeTail() #remove tail pertama untuk manipulasi gerakan
+                self.snake.removeTail() #remove tail pertama untuk mengurangi segmen
                 self.trash_positions.remove(new_head_position)
                 self.play_crunch_sound()
                 self.score -= 1
@@ -142,10 +142,10 @@ class SnakeGame:
                     self.reset()
                 self.trash_timer = pygame.time.get_ticks() # Reset trash timer
             else:
-                self.snake.remove_tail() # Manipulasi movement snake
+                self.snake.removeTail() # Manipulasi movement snake
 
         if pygame.time.get_ticks() - self.food_timer > 5000: #5 detik ga diambil, reset food
-            self.food_position = self.get_random_food_position()
+            self.food_position = self.getRandomFoodPos()
             self.food_timer = pygame.time.get_ticks()
 
     def draw(self):
@@ -227,13 +227,13 @@ class SnakeGame:
                 pygame.quit()
                 sys.exit()
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP and self.snake_direction != (0, 1):
+                if event.key == pygame.K_UP and self.snake_direction != (0, 1): #kalo arahnya ke bawah, ga bisa ke atas
                     self.snake_direction = (0, -1)
-                elif event.key == pygame.K_DOWN and self.snake_direction != (0, -1):
+                elif event.key == pygame.K_DOWN and self.snake_direction != (0, -1): #kalo arahnya ke atas, ga bisa ke bawah
                     self.snake_direction = (0, 1)
-                elif event.key == pygame.K_LEFT and self.snake_direction != (1, 0):
+                elif event.key == pygame.K_LEFT and self.snake_direction != (1, 0): #kalo arahnya ke kanan, ga bisa ke kiri
                     self.snake_direction = (-1, 0)
-                elif event.key == pygame.K_RIGHT and self.snake_direction != (-1, 0):
+                elif event.key == pygame.K_RIGHT and self.snake_direction != (-1, 0): #kalo arahnya ke kiri, ga bisa ke kanan
                     self.snake_direction = (1, 0)
 
     def run(self):
@@ -244,14 +244,14 @@ class SnakeGame:
             self.draw()
             self.clock.tick(10) #artinya 10 fps
             if len(self.trash_positions) == 0:
-                self.trash_positions.append(self.get_random_trash_position()) # Spawn trash
+                self.trash_positions.append(self.getRandomTrashPos()) # Spawn trash
                 self.trash_timer = pygame.time.get_ticks() # Start timer
             elif len(self.trash_positions) > 0:
                 if self.score > 10 and len(self.trash_positions) < 5: # jika skor lebih dari 10 dan jumlah trash kurang dari 5, trash baru akan spawn
-                    self.trash_positions.append(self.get_random_trash_position()) 
+                    self.trash_positions.append(self.getRandomTrashPos()) 
                     
                 # jika trash tidak diambil dalam 3 detik, daftar trash direset menjadi kosong
-                if pygame.time.get_ticks() - self.trash_timer > 3000: # 3 detik ga diambil, reset trash
+                if pygame.time.get_ticks() - self.trash_timer > 3000: # 3 detik ga diambil, reset trash time
                     self.trash_positions = []  # inisialisasi posisi trash kosong
 
 if __name__ == "__main__":
