@@ -120,6 +120,10 @@ class SnakeGame:
         self.sampah_timer = 0       # Reset timer sampah
         self.buah_timer = 0
         self.obstacle_timer = 0
+        self.die_by_obstacle = False
+        self.die_by_score = False
+        self.die_by_self = False
+        self.snake_direction = (1, 0)
         self.reset()
         
     # Kalau snake mati maka akan reset semuanya
@@ -180,6 +184,10 @@ class SnakeGame:
         )
         
         if self.isEatenBySnake(new_head_position) or self.isObstacle(new_head_position):
+            if self.isObstacle(new_head_position):
+                self.die_by_obstacle = True
+            else:
+                self.die_by_self = True
             self.play_die_sound()
             self.show_game_over_screen()
             self.reset()
@@ -202,6 +210,7 @@ class SnakeGame:
                 self.play_crunch_sound()
                 self.score -= 1
                 if self.score == -1:
+                    self.die_by_score = True
                     self.play_die_sound()
                     self.show_game_over_screen()
                     self.reset()
@@ -295,22 +304,32 @@ class SnakeGame:
         while running:
             self.screen.fill((108, 108, 108))
             font_color = (0, 0, 0)
+            alert_color = (255, 38, 38)
             font = pygame.font.Font(None, 36)
             scaled_judul = pygame.transform.scale(judul, (290, 200))
             self.screen.blit(scaled_judul, (SCREEN_WIDTH//2-150, 20))
             game_over_text = font.render(f"Game Over", True, font_color)
+            if self.die_by_obstacle:
+                description_text = font.render(f"Mati tertabrak batu", True, alert_color)
+            elif self.die_by_score:
+                description_text = font.render(f"Terlalu banyak makan sampah", True, alert_color)
+            elif self.die_by_self:
+                description_text = font.render(f"Makan diri sendiri", True, alert_color)
             score_text = font.render(f"Score: {self.score}", True, font_color)
             restart_text = font.render(f"Press any key to restart", True, font_color)
             
             game_over_rect = game_over_text.get_rect()
+            description_text_rect = description_text.get_rect()
             score_rect = score_text.get_rect()
             restart_rect = restart_text.get_rect()
             
-            game_over_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 40)
-            score_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 )
-            restart_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 40)
+            game_over_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 30)
+            description_text_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
+            score_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 40 )
+            restart_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 80)
             
             self.screen.blit(game_over_text, game_over_rect)
+            self.screen.blit(description_text, description_text_rect)
             self.screen.blit(score_text, score_rect)
             self.screen.blit(restart_text, restart_rect)
             pygame.display.flip()
@@ -360,7 +379,7 @@ class SnakeGame:
             if pygame.time.get_ticks() - self.obstacle_timer > 7000:  # 7 detik untuk spawn obstacle baru
                 self.obstacle_positions = []
                 self.obstacle_images = []
-                for _ in range(5):  # Spawn 5 obstacles
+                for _ in range(3):  # Spawn 3 obstacles
                     self.obstacle_positions.append(self.getRandomObstaclePos())
                     self.obstacle_images.append(random.choice(obstacle_images))
                 self.obstacle_timer = pygame.time.get_ticks()
