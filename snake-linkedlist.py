@@ -140,7 +140,7 @@ class SnakeGame:
         self.obstacle_timer = 0
         self.snake_direction = (1, 0) # 1,0 kanan -1,0 kiri 0,1 bawah 0,-1 atas
         self.food_position = self.getRandomFoodPos()
-        self.food_image = random.choice(buah_images)
+        self.food_image = random.choice(buah_images) # random pemilihan gambar buah
         self.score = 0
         self.die_by_obstacle = False
         self.die_by_score = False
@@ -381,12 +381,12 @@ class SnakeGame:
             self.clock.tick(10) #game speed
             if len(self.sampah_positions) == 0:
                 self.sampah_positions.append(self.getRandomTrashPos())  # Spawn sampah
-                self.sampah_images.append(random.choice(sampah_images))  # Randomly select a sampah image
+                self.sampah_images.append(random.choice(sampah_images))  # memilih gambar sampah secara acak
                 self.sampah_timer = pygame.time.get_ticks()  # Start timer
             elif len(self.sampah_positions) > 0:
                 if self.score > 10 and len(self.sampah_positions) < 5:
                     self.sampah_positions.append(self.getRandomTrashPos())
-                    self.sampah_images.append(random.choice(sampah_images))  # Randomly select a sampah image
+                    self.sampah_images.append(random.choice(sampah_images))  # memilih gambar sampah secara acak
                     
                 if pygame.time.get_ticks() - self.sampah_timer > 3000:  # 3 detik ga diambil, reset sampah time
                     self.sampah_positions = []  # Inisialisasi posisi sampah kosong
