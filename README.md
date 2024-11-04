@@ -40,7 +40,7 @@ A classic Snake game implemented in Python using the Pygame library. This game l
 ## How to Play
 
 1. **Controls**:
-  - Arrow keys to move
+  - Arrow keys to move:
         - Up Arrow: Move up
         - Down Arrow: Move down
         - Left Arrow: Move left
