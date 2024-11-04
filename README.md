@@ -15,8 +15,6 @@ A classic Snake game implemented in Python using the Pygame library. This game l
 ![Game Play Preview](https://github.com/Arsenik12/Project-Struktur-Data/blob/main/Assets/previews/GamePlay_Screen.png)
 ![Game Over Screen](https://github.com/Arsenik12/Project-Struktur-Data/blob/main/Assets/previews/GameOver_Screen.png)
 
-> **Note**: Replace `path/to/your/image1.png` and `path/to/your/image2.png` with the relative path to your images within the repository.
-
 ## Installation
 
 1. **Clone this repository**:
