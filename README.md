@@ -1,6 +1,6 @@
 # Linked List Snake Game
 
-A classic Snake game implemented in Python using the Pygame library. This game leverages a linked list structure to manage the snake's body, and includes various types of food, trash, and obstacles to create a unique gameplay experience.
+A classic Snake game implemented in Python using the Linked List. This game leverages a linked list structure to manage the snake's body, and includes various types of food, trash, and obstacles to create a unique gameplay experience.
 
 ## Features
 
