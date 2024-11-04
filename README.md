@@ -11,9 +11,9 @@ A classic Snake game implemented in Python using the Pygame library. This game l
 - **Game Restart with Space Bar**: On the game-over screen, press the space bar to start a new game.
 
 ## Preview
-![Game Start Screen](path/to/your/image2.png)
-![Game Play Preview](path/to/your/image1.png)
-![Game Over Screen](path/to/your/image2.png)
+![Game Start Screen](https://github.com/Arsenik12/Project-Struktur-Data/blob/main/Assets/previews/GameStart_Screen.png)
+![Game Play Preview](https://github.com/Arsenik12/Project-Struktur-Data/blob/main/Assets/previews/GamePlay_Screen.png)
+![Game Over Screen](https://github.com/Arsenik12/Project-Struktur-Data/blob/main/Assets/previews/GameOver_Screen.png)
 
 > **Note**: Replace `path/to/your/image1.png` and `path/to/your/image2.png` with the relative path to your images within the repository.
 
@@ -42,7 +42,7 @@ A classic Snake game implemented in Python using the Pygame library. This game l
 ## How to Play
 
 1. **Controls**:
-  - Arrow keys to move:
+  - Arrow keys to move
         - Up Arrow: Move up
         - Down Arrow: Move down
         - Left Arrow: Move left
